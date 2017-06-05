@@ -69,8 +69,11 @@ public class TransactionController {
 			fromIndex = 0;
 
 		int toIndex;
-		if (filter != null && filter.getLength() != null)
+		if (filter != null && filter.getLength() != null) {
 			toIndex = fromIndex + filter.getLength();
+			if(toIndex > list.size())
+				toIndex = list.size();
+		}
 		else
 			toIndex = list.size();
 

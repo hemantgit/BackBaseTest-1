@@ -1,7 +1,9 @@
 package com.backbase.test.mehdijavan.controller;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -20,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.matchers.LessOrEqual;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -75,16 +78,38 @@ public class TransactionControllerTest {
 			.perform(get("/v1/current-accounts/100/transactions/?sort=InstructedAmount&from=0&length=1"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", hasSize(1)))
-			.andExpect(jsonPath("$[0].id", is("2")))
-			.andExpect(jsonPath("$[0].accountId", is("100")))
-			.andExpect(jsonPath("$[0].instructedAmount", is(-120)));
+			.andExpect(jsonPath("$[0].id", equalTo("2")))
+			.andExpect(jsonPath("$[0].accountId", equalTo("100")))
+			.andExpect(jsonPath("$[0].instructedAmount", equalTo(-120)));
 		
 		verify(openBankTransactionService, times(1)).getTransactionsList(GeneralConstants.BANK_ID, "100");
         verifyNoMoreInteractions(openBankTransactionService);
 	}
 
 	@Test
-	public void testFilterByType() throws Exception {
+	public void testFilterByAmount() throws Exception {
+		OBTransactionsList transactionsList = createSampleTransactions();
+		
+		when(openBankTransactionService.getTransactionsList(GeneralConstants.BANK_ID, "100"))
+			.thenReturn(transactionsList); 
+		
+		mockMvc
+			.perform(get("/v1/current-accounts/100/transactions/?sort=InstructedAmount&from=0&length=10&amountRangeFrom=100&amountRangeTo=150"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", hasSize(3)))
+			.andExpect(jsonPath("$[0].instructedAmount", lessThanOrEqualTo(150)))
+			.andExpect(jsonPath("$[1].instructedAmount", lessThanOrEqualTo(150)))
+			.andExpect(jsonPath("$[2].instructedAmount", lessThanOrEqualTo(150)))
+			.andExpect(jsonPath("$[0].instructedAmount", greaterThanOrEqualTo(100)))
+			.andExpect(jsonPath("$[1].instructedAmount", greaterThanOrEqualTo(100)))
+			.andExpect(jsonPath("$[2].instructedAmount", greaterThanOrEqualTo(100)));
+		
+		verify(openBankTransactionService, times(1)).getTransactionsList(GeneralConstants.BANK_ID, "100");
+        verifyNoMoreInteractions(openBankTransactionService);
+	}
+
+	@Test
+	public void testFilterByTransferType() throws Exception {
 		OBTransactionsList transactionsList = createSampleTransactions();
 		
 		when(openBankTransactionService.getTransactionsList(GeneralConstants.BANK_ID, "100"))
@@ -94,11 +119,28 @@ public class TransactionControllerTest {
 			.perform(get("/v1/current-accounts/100/transactions/Transfer"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", hasSize(5)))
-			.andExpect(jsonPath("$[0].transactionType", is("Transfer")))
-			.andExpect(jsonPath("$[1].transactionType", is("Transfer")))
-			.andExpect(jsonPath("$[2].transactionType", is("Transfer")))
-			.andExpect(jsonPath("$[3].transactionType", is("Transfer")))
-			.andExpect(jsonPath("$[4].transactionType", is("Transfer")));
+			.andExpect(jsonPath("$[0].transactionType", equalTo("Transfer")))
+			.andExpect(jsonPath("$[1].transactionType", equalTo("Transfer")))
+			.andExpect(jsonPath("$[2].transactionType", equalTo("Transfer")))
+			.andExpect(jsonPath("$[3].transactionType", equalTo("Transfer")))
+			.andExpect(jsonPath("$[4].transactionType", equalTo("Transfer")));
+		
+		verify(openBankTransactionService, times(1)).getTransactionsList(GeneralConstants.BANK_ID, "100");
+        verifyNoMoreInteractions(openBankTransactionService);
+	}
+
+	@Test
+	public void testFilterByCharityType() throws Exception {
+		OBTransactionsList transactionsList = createSampleTransactions();
+		
+		when(openBankTransactionService.getTransactionsList(GeneralConstants.BANK_ID, "100"))
+			.thenReturn(transactionsList); 
+		
+		mockMvc
+			.perform(get("/v1/current-accounts/100/transactions/Charity"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", hasSize(1)))
+			.andExpect(jsonPath("$[0].transactionType", equalTo("Charity")));
 		
 		verify(openBankTransactionService, times(1)).getTransactionsList(GeneralConstants.BANK_ID, "100");
         verifyNoMoreInteractions(openBankTransactionService);
@@ -114,8 +156,8 @@ public class TransactionControllerTest {
 		mockMvc
 			.perform(get("/v1/current-accounts/100/transactions/Transfer/total"))			
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.GBP", is(100)))
-			.andExpect(jsonPath("$.EUR", is(290)));
+			.andExpect(jsonPath("$.GBP", equalTo(100)))
+			.andExpect(jsonPath("$.EUR", equalTo(290)));
 		
 		verify(openBankTransactionService, times(1)).getTransactionsList(GeneralConstants.BANK_ID, "100");
         verifyNoMoreInteractions(openBankTransactionService);

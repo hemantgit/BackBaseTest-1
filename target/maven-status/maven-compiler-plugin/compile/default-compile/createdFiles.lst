@@ -16,7 +16,6 @@ com/backbase/test/mehdijavan/openbank/OBOtherAccount.class
 com/backbase/test/mehdijavan/openbank/OBTransactionMetadata.class
 com/backbase/test/mehdijavan/openbank/OBTransactionsList.class
 com/backbase/test/mehdijavan/dto/Transaction.class
-com/backbase/test/mehdijavan/dto/TotalAmounts.class
 com/backbase/test/mehdijavan/openbank/OBAccount.class
 com/backbase/test/mehdijavan/config/GeneralConstants.class
 com/backbase/test/mehdijavan/openbank/OBTransactionDetails.class
